@@ -1,20 +1,12 @@
 import express from 'express'
+import userRouters from './src/routes/user.routes.js'
 const app = express()
 
-app.use(express.json()) // pra receber json
-const users = []
+app.use(express.json()) //pra receber json
+app.use(userRouters)
 
 
-app.post('/users', (req, res) => {
-  const body = req.body
-  users.push(body)
-  res.status(201), send("Usuário criado com sucesso")
-})
-
-app.get("/users", (req, res) => {
-    res.send({users})
-})
 
 app.listen(3001, () => {
-  console.log('🔥 Servidor rodando na porta 3001')
+  console.log('Servidor rodando na porta 3001')
 })
