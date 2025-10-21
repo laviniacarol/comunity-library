@@ -1,40 +1,32 @@
 import "dotenv/config";
 import jwt from "jsonwebtoken";
-import userService from "../services/user.service.js";
+import userRepositories from "../repositories/user.repository.js";
 
-export function authMiddleware(req, res, next) {
-  const tokenHeader = req.headers.authorization;
-  if (!tokenHeader) {
-    return res.status(401).send({ message: "the token was not informed" });
-  }
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader)
+    return res.status(401).send({ message: "The token was not informed!" });
 
-  const partsToken = tokenHeader.split(" ");
-  if (partsToken.length !== 2) {
-    return res.status(401).send({ message: "invalid token" });
-  }
+  const parts = authHeader.split(" "); /* ["Bearer", "token"] */
+  if (parts.length !== 2)
+    return res.status(401).send({ message: "Invalid token!" });
 
-  const [schema, token] = partsToken;
+  const [scheme, token] = parts;
 
-  if (!/^Bearer$/i.test(schema)) {
-    return res.status(401).send({ message: "malformatted token" });
-  }
+  if (!/^Bearer$/i.test(scheme))
+    return res.status(401).send({ message: "Malformatted Token!" });
 
-  jwt.verify(token, process.env.SECRET_JWT, async (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ message: "invalid token" });
-    }
+  jwt.verify(token, process.env.SECRET, async (err, decoded) => {
+    if (err) return res.status(401).send({ message: "Invalid token!" });
 
-    try {
-      const user = await userService.findUsersByIdService(decoded.id); 
-      if (!user || !user.id) {
-        return res.status(401).send({ message: "invalid token" });
-      }
+    const user = await userRepositories.findByIdUserRepository(decoded.id);
+    if (!user || !user.id)
+      return res.status(401).send({ message: "Invalid token!" });
 
-      req.userId = user.id;
-      return next();
+    req.userId = user.id;
 
-    } catch (error) {
-      return res.status(500).send({ message: "Server error" });
-    }
+    return next();
   });
 }
+
+export default authMiddleware;
